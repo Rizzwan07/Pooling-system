@@ -17,9 +17,17 @@ app.use((req, res, next) => {
   if (req.method === 'POST') {
     console.log('Request body:', JSON.stringify(req.body));
   }
+  
+  // Add CORS headers for all origins
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   next();
 });
 
@@ -36,7 +44,7 @@ app.get('/', (req, res) => {
 });
 
 // MongoDB connection string
-const uri = "mongodb+srv://Rizwan:dNifRpAvkimLh8i@poolingssystem.bbnpyiz.mongodb.net/pollingApp?retryWrites=true&w=majority&appName=PoolingsSystem";
+const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 // Database and collection names
