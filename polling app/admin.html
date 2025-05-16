@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-decor"></div>
+    <div class="container">
+        <h1 class="heading">🛠️ Admin Panel</h1>
+        <form id="pollForm">
+            <input type="text" id="question" placeholder="Enter your question..." required>
+            
+            <div id="optionsContainer">
+                <input type="text" id="option1" placeholder="Option 1" required>
+                <input type="text" id="option2" placeholder="Option 2" required>
+            </div>
+            
+            <button type="button" id="addOptionBtn" class="secondary-button">+ Add Another Option</button>
+            
+            <button type="submit" class="primary-button">Create Poll</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="vote.html" style="display: inline-block; padding: 10px 20px; background: #7c3aed; border-radius: 8px; color: #fff; text-decoration: none; font-weight: bold;">Go to Voting Page</a>
+        </div>
+        
+        <div id="pollList"></div>
+    </div>
+    <script src="admin.js"></script>
+</body>
+</html>
