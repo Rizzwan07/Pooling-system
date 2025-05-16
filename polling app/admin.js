@@ -1,6 +1,13 @@
 document.getElementById('pollForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    
+    // Animate the button during submission
+    submitButton.innerHTML = '<span style="display: inline-block; animation: pulse 1s infinite;">Submitting...</span>';
+    submitButton.disabled = true;
+
     const question = document.getElementById('question').value;
     
     // Collect all option values (ignore empty ones)
@@ -17,6 +24,9 @@ document.getElementById('pollForm').addEventListener('submit', function(e) {
     // Validate that we have at least 2 options
     if (options.length < 2) {
         alert("Please provide at least 2 options for the poll.");
+        // Reset button
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
         return;
     }
 
@@ -47,12 +57,33 @@ document.getElementById('pollForm').addEventListener('submit', function(e) {
     })
     .then(data => {
         console.log('Poll created successfully:', data);
-        loadPolls(); // Reload polls after creating a new one
-        document.getElementById('pollForm').reset();
+        
+        // Success animation
+        submitButton.innerHTML = '<span style="display: inline-block;">✅ Success!</span>';
+        
+        // Reset form with animation
+        setTimeout(() => {
+            const form = document.getElementById('pollForm');
+            form.style.transition = 'all 0.5s ease';
+            form.style.transform = 'scale(0.98)';
+            form.style.opacity = '0.8';
+            
+            setTimeout(() => {
+                loadPolls(); // Reload polls after creating a new one
+                form.reset();
+                form.style.transform = 'scale(1)';
+                form.style.opacity = '1';
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
+            }, 300);
+        }, 1000);
     })
     .catch(error => {
         console.error('Detailed error creating poll:', error);
         alert('Failed to create poll. Please try again. Error: ' + error.message);
+        // Reset button
+        submitButton.innerHTML = originalButtonText;
+        submitButton.disabled = false;
     });
 });
 
@@ -63,11 +94,30 @@ function displayPoll(poll) {
     pollElement.classList.add('poll');
     pollElement.dataset.id = poll._id;
     
+    // Set initial state for animation
+    pollElement.style.opacity = '0';
+    pollElement.style.transform = 'translateY(20px)';
+    
     let optionsHTML = `<h3>${poll.question}</h3>`;
     
-    // Add each option and its vote count
+    // Calculate total votes for percentage
+    const totalVotes = poll.votes.reduce((sum, current) => sum + current, 0);
+    
+    // Add each option and its vote count with result bars
     for (let i = 0; i < poll.options.length; i++) {
-        optionsHTML += `<p>${poll.options[i]}: ${poll.votes[i]} votes</p>`;
+        const percentage = totalVotes > 0 ? (poll.votes[i] / totalVotes * 100).toFixed(1) : 0;
+        
+        optionsHTML += `
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span><strong>${poll.options[i]}:</strong></span>
+                    <span>${poll.votes[i]} votes (${percentage}%)</span>
+                </div>
+                <div class="result-bar-container">
+                    <div class="result-bar" style="width: ${percentage}%;"></div>
+                </div>
+            </div>
+        `;
     }
 
     // Add delete button
@@ -80,6 +130,13 @@ function displayPoll(poll) {
     pollElement.querySelector('.delete-btn').addEventListener('click', function() {
         deletePoll(poll._id);
     });
+    
+    // Trigger entrance animation after a small delay
+    setTimeout(() => {
+        pollElement.style.transition = 'all 0.5s ease';
+        pollElement.style.opacity = '1';
+        pollElement.style.transform = 'translateY(0)';
+    }, 50);
 }
 
 function loadPolls() {

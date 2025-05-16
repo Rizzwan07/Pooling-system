@@ -136,6 +136,9 @@ function displayPoll(poll) {
         return response.json();
     })
     .then(pollDetails => {
+        // Calculate total votes for percentage
+        const totalVotes = pollDetails.votes.reduce((sum, current) => sum + current, 0);
+        
         let pollHTML = `
             <div class="poll" style="text-align: center;">
                 <h3>${pollDetails.question}</h3>
@@ -148,14 +151,26 @@ function displayPoll(poll) {
         
         pollHTML += `</div>`;
         
-        // Add current results
+        // Add current results with animated bars
         pollHTML += `
             <div style="margin-top: 20px; text-align: center;">
                 <h4>Current Results:</h4>
         `;
         
         for (let i = 0; i < pollDetails.options.length; i++) {
-            pollHTML += `<p><strong>${pollDetails.options[i]}:</strong> ${pollDetails.votes[i]} votes</p>`;
+            const percentage = totalVotes > 0 ? (pollDetails.votes[i] / totalVotes * 100).toFixed(1) : 0;
+            
+            pollHTML += `
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span><strong>${pollDetails.options[i]}:</strong></span>
+                        <span>${pollDetails.votes[i]} votes (${percentage}%)</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                </div>
+            `;
         }
         
         pollHTML += `</div>`;
@@ -163,11 +178,26 @@ function displayPoll(poll) {
         // Add logout button
         pollHTML += `
             <div style="text-align: center; margin-top: 20px;">
-                <button onclick="logout()" style="padding: 8px 16px; background: #ef4444; border: none; border-radius: 8px; color: #fff; cursor: pointer;">Logout</button>
+                <button onclick="logout()" style="padding: 12px 24px; background: linear-gradient(45deg, #EF4444, #B91C1C); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">Logout</button>
             </div>
         `;
         
         container.innerHTML = pollHTML;
+        
+        // Add entrance animation for the poll
+        setTimeout(() => {
+            const pollElement = container.querySelector('.poll');
+            if (pollElement) {
+                pollElement.style.opacity = '0';
+                pollElement.style.transform = 'translateY(20px)';
+                pollElement.style.transition = 'all 0.5s ease';
+                
+                setTimeout(() => {
+                    pollElement.style.opacity = '1';
+                    pollElement.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        }, 0);
     })
     .catch(error => {
         console.error('Error displaying poll:', error);
@@ -178,9 +208,17 @@ function displayPoll(poll) {
 function showPopup() {
     const popup = document.getElementById('popup');
     popup.classList.remove('hidden');
+    // Use the visible class for animation
+    setTimeout(() => {
+        popup.classList.add('visible');
+    }, 10);
 }
 
 function hidePopup() {
     const popup = document.getElementById('popup');
-    popup.classList.add('hidden');
+    popup.classList.remove('visible');
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        popup.classList.add('hidden');
+    }, 500);
 }
