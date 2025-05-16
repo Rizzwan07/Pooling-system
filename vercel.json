@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "polling app/server.js",
+      "src": "polling-app/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/polling app/server.js"
+      "dest": "/polling-app/server.js"
     }
   ]
 } 
