@@ -7,6 +7,11 @@
     "start": "node \"polling app/server.js\"",
     "vercel-build": "echo 'Build step completed'"
   },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongodb": "^6.16.0"
+  },
   "engines": {
     "node": ">=14.0.0"
   }
