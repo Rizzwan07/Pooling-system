@@ -1,0 +1,13 @@
+{
+  "name": "polling-app-root",
+  "version": "1.0.0",
+  "description": "Root package for polling app",
+  "main": "polling app/server.js",
+  "scripts": {
+    "start": "node \"polling app/server.js\"",
+    "vercel-build": "echo 'Build step completed'"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

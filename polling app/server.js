@@ -35,12 +35,21 @@ app.use((req, res, next) => {
 console.log('Current directory:', __dirname);
 console.log('Files in current directory:', fs.readdirSync(__dirname));
 
-// Serve static files from the current directory (as all files are now here)
-app.use(express.static(__dirname));
+// Serve static files from the current directory
+app.use(express.static(path.join(__dirname)));
 
 // Add a specific route for the root path to ensure index.html is served
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Special routes for HTML files
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/vote', (req, res) => {
+  res.sendFile(path.join(__dirname, 'vote.html'));
 });
 
 // MongoDB connection string
@@ -200,24 +209,19 @@ app.delete('/api/polls/:id', async (req, res) => {
 // Connect to MongoDB and start server
 async function startServer() {
   try {
-    await client.connect();
-    console.log('Connected to MongoDB Atlas');
+    // For serverless environments like Vercel, we don't want to keep connections open
+    // We'll connect for each request instead
+    console.log('MongoDB connection ready');
     
     // Create database if it doesn't exist
     const db = client.db(dbName);
     
-    // Create collections if they don't exist
-    if (!(await db.listCollections({ name: pollsCollection }).hasNext())) {
-      await db.createCollection(pollsCollection);
+    // Only start listening if not in a serverless environment (like Vercel)
+    if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
     }
-    
-    if (!(await db.listCollections({ name: usersCollection }).hasNext())) {
-      await db.createCollection(usersCollection);
-    }
-    
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
     
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
@@ -227,8 +231,30 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 }
+
+// Middleware to connect to MongoDB for each request in serverless environments
+app.use(async (req, res, next) => {
+  // Skip middleware if already connected
+  if (client.topology?.isConnected()) {
+    return next();
+  }
+  
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB for this request');
+    req.on('end', () => {
+      client.close().catch(console.error);
+    });
+    next();
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 startServer(); 
